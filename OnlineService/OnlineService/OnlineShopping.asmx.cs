@@ -66,8 +66,78 @@ namespace Online
             p.image = productinfo.Rows[0]["product_image"].ToString();
             return p;
         }
-    }
 
+        public Boolean MakeOrder(String orderList, String user_id)
+        {
+            MySQLConn conn = new MySQLConn();
+            DataTable t1 = new DataTable();
+            t1 = conn.ExecuteQuery("select * from order");
+            int order_id = t1.Rows.Count;
+            String sql = "insert into order values('','等待揽件',''," + order_id + "," + orderList + "," + user_id + ")";
+            int ret = conn.ExecuteUpdate(sql);
+
+            if (ret > 0)
+                return true;
+            else
+                return false;
+        }
+
+        public order[] getAllOrder()
+        {
+            MySQLConn conn = new MySQLConn();
+            DataTable orderinfo = new DataTable();
+            orderinfo = conn.ExecuteQuery("select * from order");
+            int n = orderinfo.Rows.Count;
+
+            order[] o = new order[n];
+
+            for (int i = 0; i < n; i++)
+            {
+                o[i].id = int.Parse(orderinfo.Rows[i]["order_id"].ToString());
+                o[i].order_list = orderinfo.Rows[i]["order_list"].ToString();
+                o[i].user_id = int.Parse(orderinfo.Rows[i]["user_id"].ToString());
+                o[i].deliver_name = orderinfo.Rows[i]["deliver_name"].ToString();
+                o[i].deliver_state = orderinfo.Rows[i]["deliver_state"].ToString();
+                o[i].deliver_tel = orderinfo.Rows[i]["deliver_tel"].ToString();
+            }
+
+            return o;
+        }
+        public order getOrder(int order_id)
+        {
+            MySQLConn conn = new MySQLConn();
+            DataTable orderinfo = new DataTable();
+            orderinfo = conn.ExecuteQuery("select * from order where order_id=" + order_id);
+            int n = orderinfo.Rows.Count;
+
+            order o;
+
+            o.id = int.Parse(orderinfo.Rows[0]["order_id"].ToString());
+            o.order_list = orderinfo.Rows[0]["order_list"].ToString();
+            o.user_id = int.Parse(orderinfo.Rows[0]["user_id"].ToString());
+            o.deliver_name = orderinfo.Rows[0]["deliver_name"].ToString();
+            o.deliver_state = orderinfo.Rows[0]["deliver_state"].ToString();
+            o.deliver_tel = orderinfo.Rows[0]["deliver_tel"].ToString();
+            return o;
+        }
+        public Boolean updateDeliverState()
+        {
+            return true;
+        }
+    }
+    public struct deliverinfo
+    {
+
+    }
+    public struct order
+    {
+        public int id;
+        public String order_list;
+        public int user_id;
+        public String deliver_name;
+        public String deliver_state;
+        public String deliver_tel;
+    }
     public struct product
     {
         public int id;
