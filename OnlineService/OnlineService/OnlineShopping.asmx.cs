@@ -5,7 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Services;
 
-namespace Online
+namespace OnlineService
 {
     /// <summary>
     /// OnlineShopping 的摘要说明
@@ -48,6 +48,7 @@ namespace Online
             return p;
         }
 
+        [WebMethod]
         //返回一个特定的商品
         //传入商品的id，传回一个product结构体
         public product getProduct(int id)
@@ -66,7 +67,7 @@ namespace Online
             p.image = productinfo.Rows[0]["product_image"].ToString();
             return p;
         }
-
+        [WebMethod]
         //用户下订单，传入订单列表和用户名
         //返回成功与否
         //订单列表格式如下“商品id/数量，商品id/数量，……”
@@ -84,6 +85,7 @@ namespace Online
             else
                 return false;
         }
+        [WebMethod]
         //获取所有的订单数据
         //返回一个order结构体数组
         public order[] getAllOrder()
@@ -107,6 +109,7 @@ namespace Online
 
             return o;
         }
+        [WebMethod]
         //获取特定的订单数据，传入订单id
         //返回一个order结构体
         public order getOrder(int order_id)
@@ -126,6 +129,7 @@ namespace Online
             o.deliver_tel = orderinfo.Rows[0]["deliver_tel"].ToString();
             return o;
         }
+        [WebMethod]
         //获取所有的送货员信息
         //返回一个deliverinfo结构体数组
         public deliverinfo[] getAlldeliver()
@@ -146,6 +150,7 @@ namespace Online
 
             return o;
         }
+        [WebMethod]
         //物流公司揽件函数，传入送货员id和订单id
         //返回成功与否
         public Boolean updateDeliverState(int deliver_id,int order_id)
@@ -166,6 +171,7 @@ namespace Online
                 return false;
             }
         }
+        [WebMethod]
         //用户取消订单函数，传入订单id
         //如果已经取消或者已经被确认收到，则无法取消订单
         //返回成功与否
@@ -190,6 +196,7 @@ namespace Online
                 return false;
             }
         }
+        [WebMethod]
         //用户确认收货函数。传入订单id
         //返回成功与否
         public Boolean reciveOrder(int order_id)
@@ -207,6 +214,7 @@ namespace Online
             }
 
         }
+        [WebMethod]
         //登陆函数，传入用户名密码
         //登陆成功返回用户角色，失败返回一个错误信息
         public String Login(String user_name,String pwd)

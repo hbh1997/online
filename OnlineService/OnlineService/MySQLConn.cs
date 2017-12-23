@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Data;
 using MySql.Data.MySqlClient;
 
-namespace Online
+namespace OnlineService
 {
     class MySQLConn
     {
