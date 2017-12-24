@@ -76,7 +76,7 @@ namespace OnlineService
             MySQLConn conn = new MySQLConn();
             DataTable t1 = new DataTable();
             t1 = conn.ExecuteQuery("select * from order");
-            int order_id = t1.Rows.Count;
+            int order_id = t1.Rows.Count+1;
             String sql = "insert into order values('','等待揽件',''," + order_id + "," + orderList + "," + user_id + ")";
             int ret = conn.ExecuteUpdate(sql);
 
@@ -105,20 +105,22 @@ namespace OnlineService
                 o[i].deliver_name = orderinfo.Rows[i]["deliver_name"].ToString();
                 o[i].deliver_state = orderinfo.Rows[i]["deliver_state"].ToString();
                 o[i].deliver_tel = orderinfo.Rows[i]["deliver_tel"].ToString();
+                o[i].producer_id= int.Parse(orderinfo.Rows[i]["producer_id"].ToString());
             }
 
             return o;
         }
         [WebMethod]
-        //获取特定的订单数据，传入订单id
+        //获取特定的订单数据，传入用户名
         //返回一个order结构体
-        public order getOrder(int order_id)
+        public order getOrder(String user_name)
         {
             MySQLConn conn = new MySQLConn();
+            DataTable user = new DataTable();
             DataTable orderinfo = new DataTable();
-            orderinfo = conn.ExecuteQuery("select * from order where order_id=" + order_id);
-            int n = orderinfo.Rows.Count;
-
+            user = conn.ExecuteQuery("select * from user where user_name='"+user_name+"'");
+            String user_id = user.Rows[0]["user_id"].ToString();
+            orderinfo = conn.ExecuteQuery("select * from order where user_id=" +user_id);
             order o;
 
             o.id = int.Parse(orderinfo.Rows[0]["order_id"].ToString());
@@ -127,6 +129,26 @@ namespace OnlineService
             o.deliver_name = orderinfo.Rows[0]["deliver_name"].ToString();
             o.deliver_state = orderinfo.Rows[0]["deliver_state"].ToString();
             o.deliver_tel = orderinfo.Rows[0]["deliver_tel"].ToString();
+            o.producer_id = int.Parse(orderinfo.Rows[0]["producer_id"].ToString());
+            return o;
+        }
+        [WebMethod]
+        //获取特定的订单数据，传入生产商id
+        //返回一个order结构体
+        public order getProducerOrder(String producer_id)
+        {
+            MySQLConn conn = new MySQLConn();
+            DataTable orderinfo = new DataTable();
+            orderinfo = conn.ExecuteQuery("select * from order where producer_id=" + producer_id);
+            order o;
+
+            o.id = int.Parse(orderinfo.Rows[0]["order_id"].ToString());
+            o.order_list = orderinfo.Rows[0]["order_list"].ToString();
+            o.user_id = int.Parse(orderinfo.Rows[0]["user_id"].ToString());
+            o.deliver_name = orderinfo.Rows[0]["deliver_name"].ToString();
+            o.deliver_state = orderinfo.Rows[0]["deliver_state"].ToString();
+            o.deliver_tel = orderinfo.Rows[0]["deliver_tel"].ToString();
+            o.producer_id = int.Parse(orderinfo.Rows[0]["producer_id"].ToString());
             return o;
         }
         [WebMethod]
@@ -153,15 +175,11 @@ namespace OnlineService
         [WebMethod]
         //物流公司揽件函数，传入送货员id和订单id
         //返回成功与否
-        public Boolean updateDeliverState(int deliver_id,int order_id)
+        public Boolean updateDeliverState(String deliver_name,int order_id)
         {
             MySQLConn conn = new MySQLConn();
-            DataTable info = new DataTable();
-            info = conn.ExecuteQuery("select * from deliver where deliver_id=" + deliver_id);
 
-            String name = info.Rows[0]["deliver_name"].ToString();
-
-            int result = conn.ExecuteUpdate("update order set deliver_state='已发货' where order_id=" + order_id);
+            int result = conn.ExecuteUpdate("update order set deliver_state='已发货' and deliver_name='"+deliver_name+"' where order_id=" + order_id);
             if (result > 0)
             {
                 return true;
@@ -182,8 +200,8 @@ namespace OnlineService
             info = conn.ExecuteQuery("select * from order where order_id=" + order_id);
             String deliverstate = info.Rows[0]["deliver_state"].ToString();
 
-            if(!(deliverstate.Equals("用户已经取消订单")|| deliverstate.Equals("用户确认收到订单"))){
-                int result = conn.ExecuteUpdate("update order set deliver_state='用户已经取消订单' where order_id=" + order_id);
+            if(!(deliverstate.Equals("已取消")|| deliverstate.Equals("已签收"))){
+                int result = conn.ExecuteUpdate("update order set deliver_state='已取消' where order_id=" + order_id);
                 if (result > 0)
                 {
                     return true;
@@ -199,11 +217,11 @@ namespace OnlineService
         [WebMethod]
         //用户确认收货函数。传入订单id
         //返回成功与否
-        public Boolean reciveOrder(int order_id)
+        public Boolean signOrder(int order_id)
         {
             MySQLConn conn = new MySQLConn();
 
-            int result = conn.ExecuteUpdate("update order set deliver_state='用户确认收到订单' where order_id=" + order_id);
+            int result = conn.ExecuteUpdate("update order set deliver_state='已签收' where order_id=" + order_id);
             if (result > 0)
             {
                 return true;
@@ -214,10 +232,11 @@ namespace OnlineService
             }
 
         }
+
         [WebMethod]
         //登陆函数，传入用户名密码
         //登陆成功返回用户角色，失败返回一个错误信息
-        public String Login(String user_name,String pwd)
+        public int Login(String user_name,String pwd)
         {
             MySQLConn conn = new MySQLConn();
             DataTable login = new DataTable();
@@ -226,28 +245,11 @@ namespace OnlineService
 
             if (login.Rows.Count == 0)
             {
-                return "fail to login";
+                return -1;
             }else
             {
-                String result=null;
                 int role = int.Parse(login.Rows[0]["user_role"].ToString());
-
-                switch (role)
-                {
-                    case 1:
-                        result = "用户";
-                        break;
-                    case 2:
-                        result = "制造商";
-                        break;
-                    case 3:
-                        result = "物流公司";
-                        break;
-                    case 4:
-                        result = "电商平台";
-                        break;
-                }
-                return result;
+                return role;
             }
            
         }
@@ -266,6 +268,7 @@ namespace OnlineService
         public String deliver_name;
         public String deliver_state;
         public String deliver_tel;
+        public int producer_id;
     }
     public struct product
     {
